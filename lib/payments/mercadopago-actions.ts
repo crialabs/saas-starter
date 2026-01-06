@@ -2,15 +2,15 @@
 
 import { redirect } from 'next/navigation';
 import { createMercadoPagoPreference } from './mercadopago';
-import { withTeam } from '@/lib/auth/middleware';
+import { withUser } from '@/lib/auth/middleware';
 
-export const mercadopagoCheckoutAction = withTeam(async (formData, team) => {
+export const mercadopagoCheckoutAction = withUser(async (formData, user) => {
   const planId = formData.get('planId') as string;
-  const preference = await createMercadoPagoPreference({ team, planId });
+  const preference = await createMercadoPagoPreference({ user, planId });
   
   if (preference.init_point) {
     redirect(preference.init_point);
   } else {
-    throw new Error('Failed to create Mercado Pago preference');
+    throw new Error('Falha ao criar preferência do Mercado Pago');
   }
 });

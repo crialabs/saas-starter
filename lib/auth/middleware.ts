@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { TeamDataWithMembers, User } from '@/lib/db/schema';
-import { getTeamForUser, getUser } from '@/lib/db/queries';
+import { User, UserRole } from '@/lib/db/schema';
+import { getUser } from '@/lib/db/queries';
 import { redirect } from 'next/navigation';
 
 export type ActionState = {
@@ -41,7 +41,7 @@ export function validatedActionWithUser<S extends z.ZodType<any, any>, T>(
   return async (prevState: ActionState, formData: FormData) => {
     const user = await getUser();
     if (!user) {
-      throw new Error('User is not authenticated');
+      throw new Error('Usuário não autenticado');
     }
 
     const result = schema.safeParse(Object.fromEntries(formData));
@@ -53,23 +53,34 @@ export function validatedActionWithUser<S extends z.ZodType<any, any>, T>(
   };
 }
 
-type ActionWithTeamFunction<T> = (
+type ActionWithUserFunction<T> = (
   formData: FormData,
-  team: TeamDataWithMembers
+  user: User
 ) => Promise<T>;
 
-export function withTeam<T>(action: ActionWithTeamFunction<T>) {
+export function withUser<T>(action: ActionWithUserFunction<T>) {
   return async (formData: FormData): Promise<T> => {
     const user = await getUser();
     if (!user) {
       redirect('/sign-in');
     }
 
-    const team = await getTeamForUser();
-    if (!team) {
-      throw new Error('Team not found');
+    return action(formData, user);
+  };
+}
+
+// RBAC Helper function
+export function requireRole(allowedRoles: UserRole[]) {
+  return async () => {
+    const user = await getUser();
+    if (!user) {
+      redirect('/sign-in');
     }
 
-    return action(formData, team);
+    if (!allowedRoles.includes(user.role as UserRole)) {
+      throw new Error('Acesso negado: permissões insuficientes');
+    }
+
+    return user;
   };
 }

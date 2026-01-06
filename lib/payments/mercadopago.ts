@@ -1,6 +1,6 @@
 import { MercadoPagoConfig, Preference, Payment } from 'mercadopago';
 import { redirect } from 'next/navigation';
-import { Team } from '@/lib/db/schema';
+import { User } from '@/lib/db/schema';
 import { getUser } from '@/lib/db/queries';
 
 // Initialize Mercado Pago client
@@ -27,35 +27,33 @@ export interface MercadoPagoPlan {
 export const mercadoPagoPlans: MercadoPagoPlan[] = [
   {
     id: 'base-plan',
-    title: 'Base Plan',
+    title: 'Plano Base',
     price: 8.00,
     currency_id: 'BRL'
   },
   {
     id: 'plus-plan',
-    title: 'Plus Plan',
+    title: 'Plano Plus',
     price: 12.00,
     currency_id: 'BRL'
   }
 ];
 
 export async function createMercadoPagoPreference({
-  team,
+  user,
   planId
 }: {
-  team: Team | null;
+  user: User | null;
   planId: string;
 }) {
-  const user = await getUser();
-
-  if (!team || !user) {
+  if (!user) {
     redirect(`/sign-up?redirect=checkout&planId=${planId}`);
   }
 
   const plan = mercadoPagoPlans.find(p => p.id === planId);
   
   if (!plan) {
-    throw new Error('Invalid plan ID');
+    throw new Error('ID do plano inválido');
   }
 
   try {
@@ -76,7 +74,7 @@ export async function createMercadoPagoPreference({
           pending: `${process.env.BASE_URL}/api/mercadopago/checkout?status=pending`
         },
         auto_return: 'approved',
-        external_reference: `${team.id}:${user.id}:${planId}`,
+        external_reference: `${user.id}:${planId}`,
         payer: {
           email: user.email,
           name: user.name || undefined
@@ -88,7 +86,7 @@ export async function createMercadoPagoPreference({
 
     return preference;
   } catch (error) {
-    console.error('Error creating Mercado Pago preference:', error);
+    console.error('Erro ao criar preferência do Mercado Pago:', error);
     throw error;
   }
 }
@@ -98,7 +96,7 @@ export async function getMercadoPagoPayment(paymentId: string) {
     const payment = await paymentClient.get({ id: paymentId });
     return payment;
   } catch (error) {
-    console.error('Error fetching Mercado Pago payment:', error);
+    console.error('Erro ao buscar pagamento do Mercado Pago:', error);
     throw error;
   }
 }
@@ -106,8 +104,8 @@ export async function getMercadoPagoPayment(paymentId: string) {
 export function getMercadoPagoPublicKey() {
   const publicKey = process.env.MERCADOPAGO_PUBLIC_KEY;
   if (!publicKey) {
-    console.error('MERCADOPAGO_PUBLIC_KEY environment variable is not set');
-    throw new Error('Mercado Pago public key is not configured');
+    console.error('Variável de ambiente MERCADOPAGO_PUBLIC_KEY não está configurada');
+    throw new Error('Chave pública do Mercado Pago não está configurada');
   }
   return publicKey;
 }
