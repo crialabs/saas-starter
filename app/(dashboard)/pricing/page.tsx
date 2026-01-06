@@ -22,29 +22,31 @@ export default async function PricingPage() {
 
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <h1 className="text-4xl font-bold text-center mb-4">Escolha seu Plano</h1>
+      <p className="text-center text-gray-600 mb-12">Selecione o plano ideal para suas necessidades</p>
       <div className="grid md:grid-cols-2 gap-8 max-w-xl mx-auto">
         <PricingCard
-          name={basePlan?.name || 'Base'}
+          name="Base"
           price={basePrice?.unitAmount || 800}
           interval={basePrice?.interval || 'month'}
           trialDays={basePrice?.trialPeriodDays || 7}
           features={[
-            'Unlimited Usage',
-            'Unlimited Workspace Members',
-            'Email Support',
+            'Uso Ilimitado',
+            'Membros Ilimitados',
+            'Suporte por Email',
           ]}
           priceId={basePrice?.id}
           mercadopagoPlanId="base-plan"
         />
         <PricingCard
-          name={plusPlan?.name || 'Plus'}
+          name="Plus"
           price={plusPrice?.unitAmount || 1200}
           interval={plusPrice?.interval || 'month'}
           trialDays={plusPrice?.trialPeriodDays || 7}
           features={[
-            'Everything in Base, and:',
-            'Early Access to New Features',
-            '24/7 Support + Slack Access',
+            'Tudo do Base, e mais:',
+            'Acesso Antecipado a Novos Recursos',
+            'Suporte 24/7 + Acesso ao Slack',
           ]}
           priceId={plusPrice?.id}
           mercadopagoPlanId="plus-plan"
@@ -71,16 +73,18 @@ function PricingCard({
   priceId?: string;
   mercadopagoPlanId?: string;
 }) {
+  const intervalText = interval === 'month' ? 'mês' : 'ano';
+  
   return (
-    <div className="pt-6">
+    <div className="pt-6 border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow">
       <h2 className="text-2xl font-medium text-gray-900 mb-2">{name}</h2>
       <p className="text-sm text-gray-600 mb-4">
-        with {trialDays} day free trial
+        com {trialDays} dias de teste grátis
       </p>
       <p className="text-4xl font-medium text-gray-900 mb-6">
-        ${price / 100}{' '}
+        R${price / 100}{' '}
         <span className="text-xl font-normal text-gray-600">
-          per user / {interval}
+          por usuário / {intervalText}
         </span>
       </p>
       <ul className="space-y-4 mb-8">
@@ -103,7 +107,7 @@ function PricingCard({
               type="submit"
               className="w-full rounded-full border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 flex items-center justify-center"
             >
-              Pay with Mercado Pago
+              Pagar com Mercado Pago
             </button>
           </form>
         )}

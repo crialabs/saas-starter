@@ -1,12 +1,12 @@
 import './globals.css';
 import type { Metadata, Viewport } from 'next';
 import { Manrope } from 'next/font/google';
-import { getUser, getTeamForUser } from '@/lib/db/queries';
+import { getUser } from '@/lib/db/queries';
 import { SWRConfig } from 'swr';
 
 export const metadata: Metadata = {
-  title: 'Next.js SaaS Starter',
-  description: 'Get started quickly with Next.js, Postgres, and Stripe.'
+  title: 'Sistema de Gestão Educacional',
+  description: 'Plataforma completa para gestão educacional com Next.js, Postgres e pagamentos integrados.'
 };
 
 export const viewport: Viewport = {
@@ -22,12 +22,12 @@ export default function RootLayout({
 }) {
   return (
     <html
-      lang="en"
+      lang="pt-BR"
       className={`bg-white dark:bg-gray-950 text-black dark:text-white ${manrope.className}`}
     >
       <head>
-        {/* Mercado Pago SDK - loaded from CDN for automatic updates
-            Note: For production, consider hosting locally or pinning to a specific version with SRI */}
+        {/* Mercado Pago SDK - carregado do CDN para atualizações automáticas
+            Nota: Para produção, considere hospedar localmente ou fixar em uma versão específica com SRI */}
         <script src="https://sdk.mercadopago.com/js/v2" async></script>
       </head>
       <body className="min-h-[100dvh] bg-gray-50">
@@ -36,8 +36,7 @@ export default function RootLayout({
             fallback: {
               // We do NOT await here
               // Only components that read this data will suspend
-              '/api/user': getUser(),
-              '/api/team': getTeamForUser()
+              '/api/user': getUser()
             }
           }}
         >
