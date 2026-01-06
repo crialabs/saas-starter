@@ -29,6 +29,9 @@ export const teams = pgTable('teams', {
   stripeProductId: text('stripe_product_id'),
   planName: varchar('plan_name', { length: 50 }),
   subscriptionStatus: varchar('subscription_status', { length: 20 }),
+  mercadopagoCustomerId: text('mercadopago_customer_id').unique(),
+  mercadopagoSubscriptionId: text('mercadopago_subscription_id').unique(),
+  mercadopagoPreapprovalPlanId: text('mercadopago_preapproval_plan_id'),
 });
 
 export const teamMembers = pgTable('team_members', {

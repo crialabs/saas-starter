@@ -1,6 +1,8 @@
 import { checkoutAction } from '@/lib/payments/actions';
+import { mercadopagoCheckoutAction } from '@/lib/payments/mercadopago-actions';
 import { Check } from 'lucide-react';
 import { getStripePrices, getStripeProducts } from '@/lib/payments/stripe';
+import { mercadoPagoPlans } from '@/lib/payments/mercadopago';
 import { SubmitButton } from './submit-button';
 
 // Prices are fresh for one hour max
@@ -32,6 +34,7 @@ export default async function PricingPage() {
             'Email Support',
           ]}
           priceId={basePrice?.id}
+          mercadopagoPlanId="base-plan"
         />
         <PricingCard
           name={plusPlan?.name || 'Plus'}
@@ -44,6 +47,7 @@ export default async function PricingPage() {
             '24/7 Support + Slack Access',
           ]}
           priceId={plusPrice?.id}
+          mercadopagoPlanId="plus-plan"
         />
       </div>
     </main>
@@ -57,6 +61,7 @@ function PricingCard({
   trialDays,
   features,
   priceId,
+  mercadopagoPlanId,
 }: {
   name: string;
   price: number;
@@ -64,6 +69,7 @@ function PricingCard({
   trialDays: number;
   features: string[];
   priceId?: string;
+  mercadopagoPlanId?: string;
 }) {
   return (
     <div className="pt-6">
@@ -85,10 +91,23 @@ function PricingCard({
           </li>
         ))}
       </ul>
-      <form action={checkoutAction}>
-        <input type="hidden" name="priceId" value={priceId} />
-        <SubmitButton />
-      </form>
+      <div className="space-y-3">
+        <form action={checkoutAction}>
+          <input type="hidden" name="priceId" value={priceId} />
+          <SubmitButton />
+        </form>
+        {mercadopagoPlanId && (
+          <form action={mercadopagoCheckoutAction}>
+            <input type="hidden" name="planId" value={mercadopagoPlanId} />
+            <button
+              type="submit"
+              className="w-full rounded-full border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 flex items-center justify-center"
+            >
+              Pay with Mercado Pago
+            </button>
+          </form>
+        )}
+      </div>
     </div>
   );
 }
