@@ -7,7 +7,7 @@ This is a starter template for building a SaaS application using **Next.js** wit
 ## Features
 
 - Marketing landing page (`/`) with animated Terminal element
-- Pricing page (`/pricing`) which connects to Stripe Checkout
+- Pricing page (`/pricing`) with dual payment options (Stripe and Mercado Pago)
 - Dashboard pages with CRUD operations on users/teams
 - Basic RBAC with Owner and Member roles
 - Subscription management with Stripe Customer Portal
@@ -21,7 +21,7 @@ This is a starter template for building a SaaS application using **Next.js** wit
 - **Framework**: [Next.js](https://nextjs.org/)
 - **Database**: [Postgres](https://www.postgresql.org/)
 - **ORM**: [Drizzle](https://orm.drizzle.team/)
-- **Payments**: [Stripe](https://stripe.com/)
+- **Payments**: [Stripe](https://stripe.com/) and [Mercado Pago](https://mercadopago.com.br)
 - **UI Library**: [shadcn/ui](https://ui.shadcn.com/)
 
 ## Getting Started
@@ -76,11 +76,24 @@ stripe listen --forward-to localhost:3000/api/stripe/webhook
 
 ## Testing Payments
 
+### Stripe
+
 To test Stripe payments, use the following test card details:
 
 - Card Number: `4242 4242 4242 4242`
 - Expiration: Any future date
 - CVC: Any 3-digit number
+
+### Mercado Pago
+
+To test Mercado Pago payments, use the following test card details:
+
+- **Approved**: `5031 7557 3453 0604`
+- **Rejected**: `5031 4332 1540 6351`
+- CVV: Any 3 digits
+- Expiration: Any future date
+
+For more details on Mercado Pago integration, see [MERCADOPAGO.md](./MERCADOPAGO.md).
 
 ## Going to Production
 
@@ -91,6 +104,12 @@ When you're ready to deploy your SaaS application to production, follow these st
 1. Go to the Stripe Dashboard and create a new webhook for your production environment.
 2. Set the endpoint URL to your production API route (e.g., `https://yourdomain.com/api/stripe/webhook`).
 3. Select the events you want to listen for (e.g., `checkout.session.completed`, `customer.subscription.updated`).
+
+### Set up a production Mercado Pago webhook
+
+1. Go to the Mercado Pago Dashboard and navigate to your application settings.
+2. Configure the webhook URL: `https://yourdomain.com/api/mercadopago/webhook`
+3. Select the payment events to listen for.
 
 ### Deploy to Vercel
 
@@ -105,8 +124,10 @@ In your Vercel project settings (or during deployment), add all the necessary en
 1. `BASE_URL`: Set this to your production domain.
 2. `STRIPE_SECRET_KEY`: Use your Stripe secret key for the production environment.
 3. `STRIPE_WEBHOOK_SECRET`: Use the webhook secret from the production webhook you created in step 1.
-4. `POSTGRES_URL`: Set this to your production database URL.
-5. `AUTH_SECRET`: Set this to a random string. `openssl rand -base64 32` will generate one.
+4. `MERCADOPAGO_ACCESS_TOKEN`: Your Mercado Pago production access token.
+5. `MERCADOPAGO_PUBLIC_KEY`: Your Mercado Pago production public key.
+6. `POSTGRES_URL`: Set this to your production database URL.
+7. `AUTH_SECRET`: Set this to a random string. `openssl rand -base64 32` will generate one.
 
 ## Other Templates
 
