@@ -25,7 +25,13 @@ export async function POST(request: NextRequest) {
       }
 
       // Parse external reference: teamId:userId:planId
-      const [teamIdStr] = payment.external_reference.split(':');
+      const parts = payment.external_reference.split(':');
+      if (parts.length !== 3) {
+        console.error('Invalid external reference format, expected teamId:userId:planId');
+        return NextResponse.json({ error: 'Invalid reference format' }, { status: 400 });
+      }
+      
+      const [teamIdStr] = parts;
       const teamId = Number(teamIdStr);
 
       if (isNaN(teamId)) {

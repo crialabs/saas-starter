@@ -28,7 +28,12 @@ export async function GET(request: NextRequest) {
     }
 
     // Parse external reference: teamId:userId:planId
-    const [teamIdStr, userIdStr, planId] = externalReference.split(':');
+    const parts = externalReference.split(':');
+    if (parts.length !== 3) {
+      throw new Error('Invalid external reference format, expected teamId:userId:planId');
+    }
+    
+    const [teamIdStr, userIdStr, planId] = parts;
     const teamId = Number(teamIdStr);
     const userId = Number(userIdStr);
 

@@ -26,6 +26,8 @@ export default function RootLayout({
       className={`bg-white dark:bg-gray-950 text-black dark:text-white ${manrope.className}`}
     >
       <head>
+        {/* Mercado Pago SDK - loaded from CDN for automatic updates
+            Note: For production, consider hosting locally or pinning to a specific version with SRI */}
         <script src="https://sdk.mercadopago.com/js/v2" async></script>
       </head>
       <body className="min-h-[100dvh] bg-gray-50">

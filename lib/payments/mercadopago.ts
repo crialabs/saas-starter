@@ -4,8 +4,12 @@ import { Team } from '@/lib/db/schema';
 import { getUser } from '@/lib/db/queries';
 
 // Initialize Mercado Pago client
+if (!process.env.MERCADOPAGO_ACCESS_TOKEN) {
+  throw new Error('MERCADOPAGO_ACCESS_TOKEN environment variable is required');
+}
+
 const client = new MercadoPagoConfig({
-  accessToken: process.env.MERCADOPAGO_ACCESS_TOKEN!,
+  accessToken: process.env.MERCADOPAGO_ACCESS_TOKEN,
   options: { timeout: 5000 }
 });
 
@@ -100,5 +104,10 @@ export async function getMercadoPagoPayment(paymentId: string) {
 }
 
 export function getMercadoPagoPublicKey() {
-  return process.env.MERCADOPAGO_PUBLIC_KEY || '';
+  const publicKey = process.env.MERCADOPAGO_PUBLIC_KEY;
+  if (!publicKey) {
+    console.error('MERCADOPAGO_PUBLIC_KEY environment variable is not set');
+    throw new Error('Mercado Pago public key is not configured');
+  }
+  return publicKey;
 }
