@@ -1,6 +1,6 @@
 import { eq } from 'drizzle-orm';
 import { db } from '@/lib/db/drizzle';
-import { users, teams, teamMembers } from '@/lib/db/schema';
+import { users } from '@/lib/db/schema';
 import { setSession } from '@/lib/auth/session';
 import { NextRequest, NextResponse } from 'next/server';
 import { getMercadoPagoPayment, mercadoPagoPlans } from '@/lib/payments/mercadopago';
@@ -27,18 +27,17 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(new URL('/pricing?error=payment_not_approved', request.url));
     }
 
-    // Parse external reference: teamId:userId:planId
+    // Parse external reference: userId:planId
     const parts = externalReference.split(':');
-    if (parts.length !== 3) {
-      throw new Error('Invalid external reference format, expected teamId:userId:planId');
+    if (parts.length !== 2) {
+      throw new Error('Formato de referência externa inválido, esperado userId:planId');
     }
     
-    const [teamIdStr, userIdStr, planId] = parts;
-    const teamId = Number(teamIdStr);
+    const [userIdStr, planId] = parts;
     const userId = Number(userIdStr);
 
-    if (isNaN(teamId) || isNaN(userId)) {
-      throw new Error('Invalid external reference format');
+    if (isNaN(userId)) {
+      throw new Error('Formato de referência externa inválido');
     }
 
     const user = await db
@@ -48,31 +47,19 @@ export async function GET(request: NextRequest) {
       .limit(1);
 
     if (user.length === 0) {
-      throw new Error('User not found in database.');
-    }
-
-    const userTeam = await db
-      .select({
-        teamId: teamMembers.teamId,
-      })
-      .from(teamMembers)
-      .where(eq(teamMembers.userId, user[0].id))
-      .limit(1);
-
-    if (userTeam.length === 0) {
-      throw new Error('User is not associated with any team.');
+      throw new Error('Usuário não encontrado no banco de dados.');
     }
 
     // Find the plan details
     const plan = mercadoPagoPlans.find(p => p.id === planId);
     
     if (!plan) {
-      throw new Error('Plan not found');
+      throw new Error('Plano não encontrado');
     }
 
-    // Update team with Mercado Pago details
+    // Update user with Mercado Pago details
     await db
-      .update(teams)
+      .update(users)
       .set({
         mercadopagoCustomerId: payment.payer?.id?.toString() || null,
         mercadopagoSubscriptionId: paymentId,
@@ -81,12 +68,12 @@ export async function GET(request: NextRequest) {
         subscriptionStatus: 'active',
         updatedAt: new Date(),
       })
-      .where(eq(teams.id, userTeam[0].teamId));
+      .where(eq(users.id, user[0].id));
 
     await setSession(user[0]);
     return NextResponse.redirect(new URL('/dashboard?payment=success', request.url));
   } catch (error) {
-    console.error('Error handling Mercado Pago checkout:', error);
+    console.error('Erro ao processar checkout do Mercado Pago:', error);
     return NextResponse.redirect(new URL('/pricing?error=processing_failed', request.url));
   }
 }

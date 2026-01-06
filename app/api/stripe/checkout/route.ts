@@ -1,6 +1,6 @@
 import { eq } from 'drizzle-orm';
 import { db } from '@/lib/db/drizzle';
-import { users, teams, teamMembers } from '@/lib/db/schema';
+import { users } from '@/lib/db/schema';
 import { setSession } from '@/lib/auth/session';
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/payments/stripe';
@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
     });
 
     if (!session.customer || typeof session.customer === 'string') {
-      throw new Error('Invalid customer data from Stripe.');
+      throw new Error('Dados de cliente inválidos do Stripe.');
     }
 
     const customerId = session.customer.id;
@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
         : session.subscription?.id;
 
     if (!subscriptionId) {
-      throw new Error('No subscription found for this session.');
+      throw new Error('Nenhuma assinatura encontrada para esta sessão.');
     }
 
     const subscription = await stripe.subscriptions.retrieve(subscriptionId, {
@@ -40,18 +40,18 @@ export async function GET(request: NextRequest) {
     const plan = subscription.items.data[0]?.price;
 
     if (!plan) {
-      throw new Error('No plan found for this subscription.');
+      throw new Error('Nenhum plano encontrado para esta assinatura.');
     }
 
     const productId = (plan.product as Stripe.Product).id;
 
     if (!productId) {
-      throw new Error('No product ID found for this subscription.');
+      throw new Error('Nenhum ID de produto encontrado para esta assinatura.');
     }
 
     const userId = session.client_reference_id;
     if (!userId) {
-      throw new Error("No user ID found in session's client_reference_id.");
+      throw new Error("Nenhum ID de usuário encontrado no client_reference_id da sessão.");
     }
 
     const user = await db
@@ -61,23 +61,11 @@ export async function GET(request: NextRequest) {
       .limit(1);
 
     if (user.length === 0) {
-      throw new Error('User not found in database.');
-    }
-
-    const userTeam = await db
-      .select({
-        teamId: teamMembers.teamId,
-      })
-      .from(teamMembers)
-      .where(eq(teamMembers.userId, user[0].id))
-      .limit(1);
-
-    if (userTeam.length === 0) {
-      throw new Error('User is not associated with any team.');
+      throw new Error('Usuário não encontrado no banco de dados.');
     }
 
     await db
-      .update(teams)
+      .update(users)
       .set({
         stripeCustomerId: customerId,
         stripeSubscriptionId: subscriptionId,
@@ -86,12 +74,12 @@ export async function GET(request: NextRequest) {
         subscriptionStatus: subscription.status,
         updatedAt: new Date(),
       })
-      .where(eq(teams.id, userTeam[0].teamId));
+      .where(eq(users.id, user[0].id));
 
     await setSession(user[0]);
     return NextResponse.redirect(new URL('/dashboard', request.url));
   } catch (error) {
-    console.error('Error handling successful checkout:', error);
+    console.error('Erro ao processar checkout bem-sucedido:', error);
     return NextResponse.redirect(new URL('/error', request.url));
   }
 }
